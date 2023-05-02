@@ -1,0 +1,22 @@
+{% extends 'core.html' %}
+
+{% block title %}Product List{% endblock %}
+
+{% block content %}
+{% if request.user.is_staff %}
+    <div style="text-align: right;">
+        <a href="{% url 'ecommerce:create_product' %}">Create a new product</a>
+    </div>
+{% endif %}
+<div class="product-list">
+    {% for product in products %}
+        <div class="product-card">
+            <h2>{{ product.name }}</h2>
+            <p>{{ product.description }}</p>
+            <p>£{{ product.price }}</p>
+            <img src="{{ product.image.url }}" alt="{{ product.name }}">
+            <a href="{% url 'ecommerce:place_order' %}">Order</a>
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}

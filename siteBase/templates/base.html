@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+
+{% load static %}
+
+<head>
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/hamburger.css' %}">
+    {% block extracss %}
+    {% endblock %}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    {% block title %} <title> APPPPpList</title> {% endblock %}
+    <script>
+      function toggleHamburgerMenu() {
+        const hamburger = document.querySelector(".hamburger");
+        const navMenu = document.querySelector(".nav-menu");
+        hamburger.classList.toggle("open");
+        navMenu.classList.toggle("open");
+      }
+    </script>
+</head>
+
+<body>
+    <header>
+      <div class="ribbon">
+        <div class="hamburger" onclick="toggleHamburgerMenu()">
+          <span class="bar"></span>
+          <span class="bar"></span>
+          <span class="bar"></span>
+        </div>
+        <img src="{% static 'images/compass3icon.png' %}">
+        <div class="h1-container">
+          <h1>Wanderer's Rest</h1>  
+        </div>
+      </div>
+      <nav class="nav-menu">
+        <ul>
+          <li><a href="{% url 'home' %}">Home</a></li>
+          <hr>
+          <li><a href="{% url 'location_posts' %}">Destinations</a></li>
+          <hr>
+          <li><a href="{% url 'blogs' %}">Blog Posts</a></li>
+          <hr>
+          <li><a href="{% url 'antiques' %}">Antiquities</a></li>
+          <hr>
+          <li><a href="{% url 'about' %}">Contact/About Me</a></li>
+        </ul>
+      </nav>
+    </header>
+    <div class="container">
+        {% block content %}
+        {% endblock %}
+    </div>
+</body>
+</html>

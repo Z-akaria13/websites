@@ -1,0 +1,28 @@
+
+
+
+{% extends "base.html" %}
+
+{% block title %} 
+<title>Create Tag</title> {% endblock %}
+
+{% block content %}  
+<h1>Create Tag</h1>
+<hr>
+<form method="post">
+    {% csrf_token %}
+    <label for="tag">Tag:</label>
+    <input type="text" id="tag" name="tag" required>
+    <label for="metatag">Metatag:</label>
+    <select id="metatag" name="metatag" required>
+      <option value="">Select a metatag...</option>
+      <option value="Location">Location</option>
+      <option value="Event">Event</option>
+      <option value="Era">Era</option>
+      <option value="Service">Service</option>
+    </select>
+    <button type="submit">Save</button>
+  </form>
+
+
+  {% endblock %}

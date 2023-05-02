@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>{{ title }}</h1>
+<hr>
+<div class="post-container">
+{% for post in location_posts %}
+<a href="{% url 'view_post' post_id=post.id %}">
+  <div class="post-box">
+
+    <div class="post-title">
+        {{ post.blurb }}
+    </div>
+    <div class="post-date">{{ post.date_made }}</div>
+    <div class="post-location">
+      {% for tag in post.tags.all %}
+        {% if tag.metatag == "Location" %}
+          {{ tag.tag }}
+        {% endif %}
+      {% endfor %}
+    </div>
+
+  </div>
+</a>
+{% empty %}
+  <p>No posts found.</p>
+{% endfor %}
+</div>
+
+{% endblock %}

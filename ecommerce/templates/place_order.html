@@ -1,0 +1,79 @@
+{% extends 'core.html' %}
+{% load static %}
+{% block title %}Place Order{% endblock %}
+
+{% block content %}
+<div class="order-form">
+    <h2>Place an order</h2>
+    <form id="order-form" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button id="stripe-button" class="stripe-button-el"><span>Pay with card</span></button>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://checkout.stripe.com/checkout.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    console.log('DOM content loaded');
+    var orderForm = document.getElementById('order-form');
+    var stripeButton = document.getElementById('stripe-button');
+
+    var handler = StripeCheckout.configure({
+        key: '{{ STRIPE_PUBLISHABLE_KEY }}',
+        image: '{% static "images/zamazon.png" %}',
+        locale: 'auto',
+        token: function(token) {
+            var tokenInput = document.createElement('input');
+            tokenInput.type = 'hidden';
+            tokenInput.name = 'stripeToken';
+            tokenInput.value = token.id;
+            orderForm.appendChild(tokenInput);
+            makePayment();
+        }
+    });
+
+    stripeButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        handler.open({
+            name: 'Zamazon',
+            description: 'Payment for order',
+            currency: 'gbp'
+        });
+    });
+
+    function makePayment() {
+    var formData = new FormData(orderForm);
+    console.log('Form data:', Array.from(formData.entries()));
+
+    fetch('{{ request.scheme }}://{{ request.get_host }}/ecommerce/make_payment/', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+            'X-CSRFToken': orderForm.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: new URLSearchParams(formData),
+    })
+        .then(function (response) {
+            console.log('Server response:', response);
+            if (!response.ok) {
+                throw new Error('Server returned non-OK status: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(function (data) {
+            alert(data.message);
+            if (data.message === 'Payment successful!') {
+                window.location.href = '/ecommerce/';
+            }
+        })
+        .catch(function (error) {
+            console.error('Error:', error);
+            alert('An error occurred. Please try again.');
+        });
+}
+});
+</script>
+{% endblock %}
