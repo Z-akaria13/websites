@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+
+
+
+
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Cerebrum{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'cerebrum/css/style.css' %}">
+
+    <script>
+        let hiddenTextIndex = 0;
+
+        function typewriterEffect(elements, texts, delay = 25, postTypeDelay = 50, onComplete = null) {
+            let typingCompleted = 0;
+
+            function typeCharacter(element, text, index) {
+                if (index < text.length) {
+                    if (index === 0) {
+                        element.style.visibility = 'visible';
+                    }
+                    element.textContent += text[index];
+                    element.setAttribute('data-text', element.textContent);
+                    setTimeout(() => typeCharacter(element, text, index + 1), delay);
+                } else {
+                    typingCompleted++;
+                    if (typingCompleted === elements.length) {
+                        if (onComplete) {
+                            onComplete();
+                        } else {
+                            setTimeout(applyFlashAndSwitchClass, postTypeDelay);
+                        }
+                    }
+                }
+            }
+
+            elements.forEach((element, index) => {
+                typeCharacter(element, texts[index], 0);
+            });
+        }
+
+        function applyFlashAndSwitchClass() {
+            const textElements = document.querySelectorAll('.partial-reflected-text');
+            textElements.forEach(element => {
+                element.classList.add('flash-red');
+                setTimeout(() => {
+                    element.classList.remove('partial-reflected-text');
+                    element.classList.remove('flash-red');
+                }, 500);
+            });
+
+            setTimeout(() => {
+                const hiddenDiv = document.querySelector('.hidden-div');
+                const textElements = hiddenDiv.querySelectorAll('.hidden-text');
+                const texts = Array.from(textElements, el => el.textContent);
+
+                textElements[hiddenTextIndex].textContent = '';
+                textElements[hiddenTextIndex].setAttribute('data-text', '');
+                hiddenDiv.style.display = 'block';
+
+                typewriterEffect(
+                    [textElements[hiddenTextIndex]],
+                    [texts[hiddenTextIndex]],
+                    100,
+                    0,
+                    () => {
+                        hiddenTextIndex++;
+                        if (hiddenTextIndex < textElements.length) {
+                            applyFlashAndSwitchClass();
+                        }
+                    }
+                );
+            }, 500);
+        }
+
+        function addHiddenText(text, parentEl, typewriterDelay = 20, onComplete = null) {
+    const el = document.createElement('p');
+    el.classList.add('hidden-text');
+    el.setAttribute('data-text', text);
+    el.style.visibility = 'hidden';
+    parentEl.appendChild(el);
+
+    let index = 0;
+    const timerId = setInterval(function () {
+        el.style.visibility = 'visible';
+        el.textContent += text[index++];
+        if (index >= text.length) {
+            clearInterval(timerId);
+            if (onComplete) {
+                onComplete();
+            }
+        }
+    }, typewriterDelay);
+}
+        document.addEventListener('DOMContentLoaded', function () {
+            const textElements = document.querySelectorAll('.partial-reflected-text');
+            const texts = Array.from(textElements, el => el.textContent);
+            textElements.forEach(el => {
+                el.textContent = '';
+                el.setAttribute('data-text', '');
+            });
+
+            typewriterEffect(textElements, texts, 130, 500);
+            
+
+
+            document.getElementById('submit-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+
+    const textInput = document.getElementById('text-input').value;
+    const priorParagraphs = Array.from(document.querySelectorAll('.hidden-text'))
+        .map(el => el.textContent);
+
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '{% url "cerebrum:submit_text" %}', true);
+    xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+    xhr.setRequestHeader('X-CSRFToken', getCSRFToken());
+
+    xhr.onreadystatechange = function () {
+    if (xhr.readyState === 4 && xhr.status === 200) {
+        const response = JSON.parse(xhr.responseText);
+        const hiddenDiv = document.querySelector('.text-holder');
+
+        // Add user's text input with typewriter effect
+        addHiddenText(`You: ${textInput}`, hiddenDiv.lastElementChild, 50, () => {
+            // Add AI's response with typewriter effect
+            addHiddenText(response.html, hiddenDiv.lastElementChild, 50);
+        });
+    }
+};
+
+    xhr.send(`text_input=${encodeURIComponent(textInput)}&prior_paragraphs=${encodeURIComponent(JSON.stringify(priorParagraphs))}`);
+});
+
+
+
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            return cookie.substring('csrftoken='.length, cookie.length);
+        }
+    }
+    return '';
+}
+        });
+
+
+        
+    </script>
+
+</head>
+<body>
+    <header>
+        <h1 class="partial-reflected-text" data-text="Cerebrum">Cerebrum Version 01</h1>
+    </header>
+
+
+    <div class="hidden-div">
+        <div class = "text-holder">
+        <p class="hidden-text">Cerebrum: Hello, I Am Cerebrum, an AI.</p>
+    </div>
+        <form id="submit-form">
+            <label for="text-input">Your Text:</label>
+            <textarea  id="text-input" name="text_input"></textarea>
+            <button type="submit">Submit</button>
+        </form>
+    </div>
+</body>
+</html>
