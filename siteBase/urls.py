@@ -9,7 +9,6 @@ urlpatterns = [
     path('create_tag/', views.create_tag, name='create_tag'),
      path('', views.old, name='old'),
      path('sancun/', views.sanctum, name='sanctum'),
-          path('sancun/inner', views.sanctumInner, name='sanctumInside'),
     path('home/', views.home, name = 'home'),
     path('about/', views.abt, name = 'about'),
         path('post/<int:post_id>/', views.view_post, name='view_post'),
